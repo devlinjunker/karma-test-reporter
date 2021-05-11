@@ -1,0 +1,16 @@
+{
+  "name": "test.karma.reporter",
+  "version": "0.0.0-SNAPSHOT",
+  "description": "Testing karma reporter",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "karma",
+    "reporter",
+    "test"
+  ],
+  "author": "devlin.junker@gmail.com",
+  "license": "MIT"
+}
