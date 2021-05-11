@@ -1,0 +1,240 @@
+{
+  id: '31239345',
+  fullName: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/88.0.4298.0 Safari/537.36',
+  name: 'Chrome Headless 88.0.4298.0 (Mac OS 10.13.6)',
+  lastResult: BrowserResult {
+    startTime: 1620760241754,
+    total: 4805,
+    success: 0,
+    failed: 0,
+    skipped: 0,
+    totalTime: 0,
+    netTime: 0,
+    error: false,
+    disconnected: false
+  },
+  disconnectsCount: 0,
+  activeSockets: [
+    Socket {
+      _events: [Object: null prototype],
+      _eventsCount: 8,
+      _maxListeners: undefined,
+      nsp: [Namespace],
+      client: [Client],
+      acks: Map(0) {},
+      fns: [],
+      flags: {},
+      _rooms: Set(0) {},
+      server: [Server],
+      adapter: [Adapter],
+      id: 'MfzyNFHXuGsblSJ-AAAB',
+      connected: true,
+      disconnected: false,
+      handshake: [Object],
+      [Symbol(kCapture)]: false
+    }
+  ],
+  noActivityTimeout: 30000,
+  singleRun: true,
+  clientConfig: {
+    args: [],
+    useIframe: true,
+    runInParent: false,
+    captureConsole: true,
+    clearContext: true,
+    mocha: { timeout: 6000 },
+    originalArgs: []
+  },
+  collection: BrowserCollection {
+    browsers: [ [Circular *1] ],
+    emitter: Server {
+      _events: [Object: null prototype],
+      _eventsCount: 16,
+      _maxListeners: undefined,
+      log: [Logger],
+      loadErrors: [],
+      _injector: [Injector],
+      _boundServer: [Server],
+      _fileList: [FileList],
+      [Symbol(kCapture)]: false
+    }
+  },
+  emitter: <ref *2> Server {
+    _events: [Object: null prototype] {
+      load_error: [Function (anonymous)],
+      exit: [Array],
+      run_complete: [Array],
+      browser_complete: [Array],
+      file_list_modified: [Array],
+      run_start: [Array],
+      browser_start: [Array],
+      browser_error: [Array],
+      browser_log: [Array],
+      spec_complete: [Array],
+      browsers_change: [Function (anonymous)],
+      browser_register: [Function (anonymous)],
+      stop: [Function (anonymous)],
+      browser_restart_failure: [Function (anonymous)],
+      browser_complete_with_no_more_retries: [Function (anonymous)],
+      browser_process_failure: [Function (anonymous)]
+    },
+    _eventsCount: 16,
+    _maxListeners: undefined,
+    log: Logger {
+      category: 'karma-server',
+      context: {},
+      parseCallStack: [Function: defaultParseCallStack]
+    },
+    loadErrors: [],
+    _injector: Injector {
+      _providers: [Object: null prototype],
+      _instances: [Object: null prototype],
+      get: [Function: get],
+      invoke: [Function: invoke],
+      instantiate: [Function: instantiate],
+      createChild: [Function: createChild]
+    },
+    _boundServer: Server {
+      _events: [Object: null prototype],
+      _eventsCount: 3,
+      _maxListeners: undefined,
+      _connections: 0,
+      _handle: [TCP],
+      _usingWorkers: false,
+      _workers: [],
+      _unref: false,
+      allowHalfOpen: false,
+      pauseOnConnect: false,
+      _connectionKey: '4:0.0.0.0:9876',
+      [Symbol(kCapture)]: false,
+      [Symbol(async_id_symbol)]: 7
+    },
+    _fileList: FileList {
+      _patterns: [Array],
+      _excludes: [Array],
+      _emitter: [Circular *2],
+      _preprocess: [AsyncFunction: preprocess],
+      buckets: [Map],
+      _refreshing: [Promise],
+      _emitModified: [Function (anonymous)]
+    },
+    [Symbol(kCapture)]: false
+  },
+  socket: {
+    _events: [Object: null prototype] {
+      start: [Function (anonymous)],
+      info: [Function (anonymous)],
+      karma_error: [Function (anonymous)],
+      result: [Function (anonymous)],
+      complete: [Function (anonymous)],
+      error: [Function (anonymous)],
+      register: [Function (anonymous)],
+      disconnect: [Function (anonymous)]
+    },
+    _eventsCount: 8,
+    _maxListeners: undefined,
+    nsp: Namespace {
+      _events: [Object: null prototype],
+      _eventsCount: 1,
+      _maxListeners: undefined,
+      sockets: [Map],
+      _fns: [],
+      _rooms: Set(0) {},
+      _flags: {},
+      _ids: 0,
+      server: [Server],
+      name: '/',
+      adapter: [Adapter],
+      [Symbol(kCapture)]: false
+    },
+    client: Client {
+      sockets: [Map],
+      nsps: [Map],
+      server: [Server],
+      conn: [Socket],
+      encoder: Encoder {},
+      decoder: [Decoder],
+      id: 'UH9h6l2bIHKnzUNSAAAA',
+      onclose: [Function: bound onclose],
+      ondata: [Function: bound ondata],
+      onerror: [Function: bound onerror],
+      ondecoded: [Function: bound ondecoded],
+      connectTimeout: undefined
+    },
+    acks: Map(0) {},
+    fns: [],
+    flags: {},
+    _rooms: Set(0) {},
+    server: Server {
+      _events: [Object: null prototype] {},
+      _eventsCount: 0,
+      _maxListeners: undefined,
+      _nsps: [Map],
+      parentNsps: Map(0) {},
+      _path: '/socket.io',
+      clientPathRegex: /^\/socket\.io\/socket\.io(\.min|\.msgpack\.min)?\.js(\.map)?$/,
+      _connectTimeout: 45000,
+      _serveClient: true,
+      _parser: [Object],
+      encoder: Encoder {},
+      _adapter: [class Adapter extends EventEmitter],
+      sockets: [Namespace],
+      opts: [Object],
+      eio: [Server],
+      httpServer: [Server],
+      engine: [Server],
+      [Symbol(kCapture)]: false
+    },
+    adapter: Adapter {
+      _events: [Object: null prototype] {},
+      _eventsCount: 0,
+      _maxListeners: undefined,
+      nsp: [Namespace],
+      rooms: [Map],
+      sids: [Map],
+      encoder: Encoder {},
+      [Symbol(kCapture)]: false
+    },
+    id: 'MfzyNFHXuGsblSJ-AAAB',
+    connected: true,
+    disconnected: false,
+    handshake: {
+      headers: [Object],
+      time: 'Tue May 11 2021 12:10:36 GMT-0700 (Pacific Daylight Time)',
+      address: '127.0.0.1',
+      xdomain: false,
+      secure: false,
+      issued: 1620760236887,
+      url: '/socket.io/?EIO=4&transport=polling&t=NbSrfCc',
+      query: [Object: null prototype],
+      auth: {}
+    },
+    [Symbol(kCapture)]: false
+  },
+  timer: {
+    setTimeout: [Function: setTimeout],
+    clearTimeout: [Function: clearTimeout]
+  },
+  disconnectDelay: 2000,
+  log: Logger {
+    category: 'Chrome Headless 88.0.4298.0 (Mac OS 10.13.6)',
+    context: {},
+    parseCallStack: [Function: defaultParseCallStack]
+  },
+  noActivityTimeoutId: Timeout {
+    _idleTimeout: 30000,
+    _idlePrev: [Timeout],
+    _idleNext: [TimersList],
+    _idleStart: 396146,
+    _onTimeout: [Function (anonymous)],
+    _timerArgs: undefined,
+    _repeat: null,
+    _destroyed: false,
+    [Symbol(refed)]: true,
+    [Symbol(kHasPrimitive)]: false,
+    [Symbol(asyncId)]: 849716,
+    [Symbol(triggerId)]: 849712
+  },
+  pendingDisconnect: null,
+  state: 'EXECUTING'
+}
