@@ -13,6 +13,7 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
   this.times = {};
   this.longTests = [];
   this.longTestsCustom = [];
+  this.fails = [];
 
   /**
    * Executes at the begining of the Tests running?
@@ -21,7 +22,7 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
   this.onRunStart = function(browsers) {
     this.write('onRunStart\n');
 
-    console.log(config);
+    // console.log(config);
 
     this.times['build_start'] = (new Date()).getTime();
 
@@ -42,9 +43,10 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
    */
   this.onBrowserStart = function(browser) {
     this.write('onBrowserStart\n');
-    console.log(browser);
+    // console.log(browser);
     this.times['browser_start'] = (new Date()).getTime();
     this.times['browser_last_result_start'] = browser.lastResult.startTime;
+    this.times['build_time'] = this.times['browser_start'] - this.times['build_start'];
   }
 
   /**
@@ -53,7 +55,7 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
    * @param {*} result
    */
   this.onSpecComplete = function(browser, result) {
-    this.write('onSpecComplete\n');
+    // this.write('onSpecComplete\n');
     // console.log(browser);
     // console.log(result);
 
@@ -65,7 +67,7 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
       this.specFailure(browser, result);
     }
 
-    this.write(result.description + '\n');
+    // this.write(result.description + '\n');
 
     if (!this.times['first_test_start']) {
       this.times['first_test_start'] = result.startTime;
@@ -78,8 +80,8 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
       this.longTests.push(result.suite.join('-') + ': ' + result.description);
     }
 
-    if (result.endTime - result.startTime > 2000) {
-      this.longTestsCustom.push(result.suite.join('-') + ': ' + result.description);
+    if (result.endTime - result.startTime > 500) {
+      this.longTestsCustom.push(result.suite.join('-') + ': ' + result.description + '('+(result.endTime - result.startTime)+')');
     }
   }
 
@@ -93,31 +95,34 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
     console.log(browsersCollection);
     console.log(results);
 
-    console.log(this.longTests);
-    console.log(this.longTestsCustom);
+    console.log(JSON.stringify(this.longTests, null, 2));
+    console.log(JSON.stringify(this.longTestsCustom, null, 2));
 
     this.times['run_end'] = (new Date()).getTime();
     this.write(JSON.stringify(this.times) + '\n\n');
+
+    console.log(JSON.stringify(this.fails, null, 2));
   }
 
 
   /*********************/
   /* Custom functions */
   this.specSuccess = function(browser, result) {
-    this.write('specSuccess\n');
+    //this.write('specSuccess\n');
     // console.log(browser);
-    console.log(result);
+    // console.log(result);
   }
 
   this.specFailure = function(browser, result) {
     this.write('specFailure\n');
     // console.log(browser);
     console.log(result);
+    this.fails.push(result.suite.join('-') + ': ' + result.description + '('+(result.endTime - result.startTime)+')');
   };
 
   this.specSkipped = function(browser, result) {
     this.write('specSkipped\n');
-    console.log(result);
+    // console.log(result);
   }
 };
 
