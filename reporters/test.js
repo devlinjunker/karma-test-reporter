@@ -1,3 +1,5 @@
+const util = require('util');
+
 /**
  * Testing how the Karma Reporters work
  *
@@ -94,36 +96,40 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
    */
   this.onRunComplete = function(browsersCollection, results) {
     this.write('test-onRunComplete\n');
-    console.log(browsersCollection);
-    console.log(results);
-
-    console.log(JSON.stringify(this.longTests, null, 2));
-    console.log(JSON.stringify(this.longTestsCustom, null, 2));
-
-    this.times['run_end'] = (new Date()).getTime();
-    this.write(JSON.stringify(this.times) + '\n\n');
-
-    console.log(JSON.stringify(this.fails, null, 2));
+    // console.log(browsersCollection);
+    // console.log(results);
+    //
+    // console.log(JSON.stringify(this.longTests, null, 2));
+    // console.log(JSON.stringify(this.longTestsCustom, null, 2));
+    //
+    // this.times['run_end'] = (new Date()).getTime();
+    // this.times['total_time'] = this.times['run_end']-this.times['build_start'];
+    // this.write(JSON.stringify(this.times) + '\n\n');
+    //
+    // console.log(JSON.stringify(this.fails, null, 2));
   }
 
 
   // TODO: Research these (copied from base reporter for now...)
   // Can we capture errors/logs? and erase our progress line before they print?
   this.onBrowserError = (browser, error) => {
+    console.log(error);
     this.writeCommonMsg(util.format(this.ERROR, browser) + formatError(error, '  '))
   }
 
   this.onBrowserLog = (browser, log, type) => {
-    if (!browserConsoleLogOptions || !browserConsoleLogOptions.terminal) return
+    console.log(log);
+    console.log(type);
+    // if (!browserConsoleLogOptions || !browserConsoleLogOptions.terminal) return
     type = type.toUpperCase()
-    if (browserConsoleLogOptions.level) {
-      const logPriority = constants.LOG_PRIORITIES.indexOf(browserConsoleLogOptions.level.toUpperCase())
-      if (constants.LOG_PRIORITIES.indexOf(type) > logPriority) return
-    }
-    if (!helper.isString(log)) {
-      // TODO(vojta): change util to new syntax (config object)
-      log = util.inspect(log, false, undefined, this.USE_COLORS)
-    }
+    // if (browserConsoleLogOptions.level) {
+    //   const logPriority = constants.LOG_PRIORITIES.indexOf(browserConsoleLogOptions.level.toUpperCase())
+    //   if (constants.LOG_PRIORITIES.indexOf(type) > logPriority) return
+    // }
+    // if (!helper.isString(log)) {
+    //   // TODO(vojta): change util to new syntax (config object)
+    //   log = util.inspect(log, false, undefined, this.USE_COLORS)
+    // }
     if (this._browsers && this._browsers.length === 1) {
       this.writeCommonMsg(util.format(this.LOG_SINGLE_BROWSER, type, log))
     } else {

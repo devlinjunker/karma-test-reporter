@@ -61,11 +61,14 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
 
     // I feel like this is the actual test length
     if (result.time > 200) {
+      result.sortTime = result.time;
       this.longTests.push(result);
     }
 
+    const totalTime = result.endTime - result.startTime;
     // and this includes setup time (before/after each)
-    if (result.endTime - result.startTime > 500) {
+    if (totalTime > 500) {
+      result.sortTime = totalTime;
       this.longTests.push(result);
     }
   }
@@ -77,6 +80,10 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
    */
   this.onRunComplete = function(browsersCollection, results) {
     this.times['run_end'] = (new Date()).getTime();
+
+    this.times['total_time'] = this.times['run_end']-this.times['build_start'];
+
+    this.longTests = this.longTests.sort((a, b) => { return a.sortTime > b.sortTime });
 
     this.printOverview(results);
   }
@@ -114,7 +121,7 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   this.printFailures = function() {
     // To a File? that can be viewed with less
     // Print test names
-    // Print the file?
+    // Print the file name too? grep result.suite[0]
   }
 
   this.printPerformance = function() {
@@ -127,6 +134,10 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   }
 
   this.printOverview = function (runCompleteResults) {
+    const totalTests = runCompleteResults.success + runCompleteResults.failed + runCompleteResults.skipped;
+    this.times['average_test_time'] = (this.times['total_time'] - this.times['build_time']) / totalTests;
+
+
     // Print at end:
       // Build time
       // Average Test Time
@@ -135,7 +146,7 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
       // Number of Failed out of Total
 
       // Total Results
-      console.log(results);
+      console.log(runCompleteResults);
 
       // print = result.suite.join('-') + ': ' + result.description + '('+(result.endTime - result.startTime)+')'
       console.log(JSON.stringify(this.longTests, null, 2));
