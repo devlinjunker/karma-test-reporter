@@ -71,6 +71,8 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
       result.sortTime = totalTime;
       this.longTests.push(result);
     }
+
+    this.printProgress(browser, result);
   }
 
   /**
@@ -83,11 +85,20 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
 
     this.times['total_time'] = this.times['run_end']-this.times['build_start'];
 
-    this.longTests = this.longTests.sort((a, b) => { return a.sortTime > b.sortTime });
+    this.longTests = this.longTests.sort((a, b) => { return b.sortTime - a.sortTime });
 
     this.printOverview(results);
   }
 
+
+  this.onBrowserError = (browser, error) => {
+    // TODO:
+    // console.log(error);
+  }
+
+  this.onBrowserLog = (browser, log, type) => {
+    // TODO:
+  }
 
   /*********************/
   /* Custom functions */
@@ -114,8 +125,33 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   /*********************/
   /* Print functions */
 
-  this.printProgress = function() {
-    // Replicate Progress Reporter but with better output
+  this.printProgress = function(browser, specResult) {
+    const browserResult = browser.lastResult;
+    const totalExecuted = browserResult.success + browserResult.failed
+    let msg = `${browser.name}: Executed ${totalExecuted} of ${browserResult.total}`
+
+    if (browserResult.failed) {
+      msg += '${browserLastResult.failed} FAILED'
+    }
+
+    if (browserResult.skipped) {
+      msg += ` (skipped ${browserResult.skipped})`
+    }
+
+    if (browserResult.disconnected) {
+      msg += this.FINISHED_DISCONNECTED
+    } else if (browserResult.error) {
+      msg += this.FINISHED_ERROR
+    } else if (!browserResult.failed) {
+      msg += this.FINISHED_SUCCESS
+    }
+
+    const totalTime = (new Date()).getTime() - this.times['browser_start'];
+    const testTime = specResult.endTime - specResult.startTime;
+    
+    msg += ` (${testTime} / ${totalTime})`
+
+    this.write(msg);
   }
 
   this.printFailures = function() {
