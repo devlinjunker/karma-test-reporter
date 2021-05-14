@@ -109,14 +109,28 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
     // console.log(JSON.stringify(this.fails, null, 2));
   }
 
-
-  // TODO: Research these (copied from base reporter for now...)
-  // Can we capture errors/logs? and erase our progress line before they print?
+  /**
+   * Triggered when there is an error in the browser
+   * @param  {*} browser
+   * @param  {*} error
+   *
+   * TODO: Can we capture errors/logs? and erase our progress line before they print?
+   */
   this.onBrowserError = (browser, error) => {
-    console.log(error);
-    this.writeCommonMsg(util.format(this.ERROR, browser) + formatError(error, '  '))
+    // TODO: Haven't actually hit this yet
+
+    this.writeCommonMsg('ERROR:' + '\n');
+    this.writeCommonMsg(error + '\n\n\n\n');
+    console.log(browser);
+    // this.writeCommonMsg(util.format(this.ERROR, browser) + formatError(error, '  '))
   }
 
+  /**
+   * Triggered when browser logs message
+   * @param  {*} browser
+   * @param  {*} log     message being logged
+   * @param  {*} type    'error' | 'warn' | 'info' | 'debug' | 'log'
+   */
   this.onBrowserLog = (browser, log, type) => {
     console.log(log);
     console.log(type);

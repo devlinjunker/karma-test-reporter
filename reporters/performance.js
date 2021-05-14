@@ -88,16 +88,32 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
     this.longTests = this.longTests.sort((a, b) => { return b.sortTime - a.sortTime });
 
     this.printOverview(results);
+
+    this.printFailures();
+    this.printPerformance();
   }
 
+  /**
+   * Triggered when there is an error in the browser
+   * @param  {*} browser
+   * @param  {*} error
+   *
+   * TODO: Can we capture errors/logs? and erase our progress line before they print?
 
+   */
   this.onBrowserError = (browser, error) => {
     // TODO:
     // console.log(error);
   }
 
+  /**
+   * Triggered when browser logs message
+   * @param  {*} browser
+   * @param  {*} log     message being logged
+   * @param  {*} type    'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'LOG'
+   */
   this.onBrowserLog = (browser, log, type) => {
-    // TODO:
+    // TODO: consider printing the last spec name in this and error method
   }
 
   /*********************/
@@ -128,10 +144,10 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   this.printProgress = function(browser, specResult) {
     const browserResult = browser.lastResult;
     const totalExecuted = browserResult.success + browserResult.failed
-    let msg = `${browser.name}: Executed ${totalExecuted} of ${browserResult.total}`
+    let msg = `${browser.name}: Executed ${totalExecuted} of ${browserResult.total}\n`
 
     if (browserResult.failed) {
-      msg += '${browserLastResult.failed} FAILED'
+      msg += `${browserResult.failed} FAILED`
     }
 
     if (browserResult.skipped) {
@@ -148,8 +164,8 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
 
     const totalTime = (new Date()).getTime() - this.times['browser_start'];
     const testTime = specResult.endTime - specResult.startTime;
-    
-    msg += ` (${testTime} / ${totalTime})`
+
+    msg += ` (${testTime} / ${totalTime})\n`
 
     this.write(msg);
   }
@@ -175,21 +191,23 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
 
 
     // Print at end:
-      // Build time
-      // Average Test Time
-      // Longest test time
-      // Number of Long Tests
-      // Number of Failed out of Total
+    //
+    // Status
+    // Build time
+    // Average Test Time
+    // Longest test time
+    // Number of Long Tests
+    // Number of Failed out of Total
 
-      // Total Results
-      console.log(runCompleteResults);
+    // Total Results
+    console.log(runCompleteResults);
 
-      // print = result.suite.join('-') + ': ' + result.description + '('+(result.endTime - result.startTime)+')'
-      console.log(JSON.stringify(this.longTests, null, 2));
+    // print = result.suite.join('-') + ': ' + result.description + '('+(result.endTime - result.startTime)+')'
+    console.log(JSON.stringify(this.longTests, null, 2));
 
-      console.log(JSON.stringify(this.fails, null, 2));
+    console.log(JSON.stringify(this.fails, null, 2));
 
-      this.write(JSON.stringify(this.times) + '\n\n');
+    this.write(JSON.stringify(this.times) + '\n\n');
   }
 };
 
