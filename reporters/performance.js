@@ -3,7 +3,7 @@
  *
  * Goals:
  *  - Identify Build Time
- *  - Identify Average Test timeout
+ *  - Identify Average Test time
  *  - Identify Time spent on each test
  *  - Show progress (update output after each test)
  *  - Identify Long Tests (setup + test > 500ms?, setup > 200ms)
@@ -59,12 +59,12 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
     // this.write(result.description + '\n');
 
 
-    // I feel like this is the test length
+    // I feel like this is the actual test length
     if (result.time > 200) {
       this.longTests.push(result);
     }
 
-    // vs this is includes setup
+    // and this includes setup time (before/after each)
     if (result.endTime - result.startTime > 500) {
       this.longTests.push(result);
     }
@@ -78,21 +78,13 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   this.onRunComplete = function(browsersCollection, results) {
     this.times['run_end'] = (new Date()).getTime();
 
-    // Total Results
-    console.log(results);
-
-    // print = result.suite.join('-') + ': ' + result.description + '('+(result.endTime - result.startTime)+')'
-    console.log(JSON.stringify(this.longTests, null, 2));
-    console.log(JSON.stringify(this.longTestsCustom, null, 2));
-
-    console.log(JSON.stringify(this.fails, null, 2));
-
-    this.write(JSON.stringify(this.times) + '\n\n');
+    this.printOverview(results);
   }
 
 
   /*********************/
   /* Custom functions */
+
   this.specSuccess = function(browser, result) {
     // TODO: Should we do anything?
   }
@@ -103,6 +95,54 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
 
   this.specSkipped = function(browser, result) {
     // TODO: Should we do anything?
+  }
+
+  /*********************/
+  /* Helper functions */
+
+  this.eraseLastLine = function () {
+    this.write('\x1B[1A' + '\x1B[2K');
+  }
+
+  /*********************/
+  /* Print functions */
+
+  this.printProgress = function() {
+    // Replicate Progress Reporter but with better output
+  }
+
+  this.printFailures = function() {
+    // To a File? that can be viewed with less
+    // Print test names
+    // Print the file?
+  }
+
+  this.printPerformance = function() {
+
+    // In a separate file (to be viewed with less)
+    // Identify Build Time
+    // Identify Average Test time
+    // Show Long Tests (sorted by time from large to small)
+    // Identify if it is setup vs test time that is taking long
+  }
+
+  this.printOverview = function (runCompleteResults) {
+    // Print at end:
+      // Build time
+      // Average Test Time
+      // Longest test time
+      // Number of Long Tests
+      // Number of Failed out of Total
+
+      // Total Results
+      console.log(results);
+
+      // print = result.suite.join('-') + ': ' + result.description + '('+(result.endTime - result.startTime)+')'
+      console.log(JSON.stringify(this.longTests, null, 2));
+
+      console.log(JSON.stringify(this.fails, null, 2));
+
+      this.write(JSON.stringify(this.times) + '\n\n');
   }
 };
 

@@ -20,7 +20,7 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
    * @param {*} browsers
    */
   this.onRunStart = function(browsers) {
-    this.write('onRunStart\n');
+    this.write('test-onRunStart\n');
 
     // console.log(config);
 
@@ -42,7 +42,7 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
    * @param {*} browser
    */
   this.onBrowserStart = function(browser) {
-    this.write('onBrowserStart\n');
+    this.write('test-onBrowserStart\n');
     // console.log(browser);
     this.times['browser_start'] = (new Date()).getTime();
     this.times['browser_last_result_start'] = browser.lastResult.startTime;
@@ -93,7 +93,7 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
    * @param {*} results
    */
   this.onRunComplete = function(browsersCollection, results) {
-    this.write('onRunComplete\n');
+    this.write('test-onRunComplete\n');
     console.log(browsersCollection);
     console.log(results);
 
@@ -107,6 +107,31 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
   }
 
 
+  // TODO: Research these (copied from base reporter for now...)
+  // Can we capture errors/logs? and erase our progress line before they print?
+  this.onBrowserError = (browser, error) => {
+    this.writeCommonMsg(util.format(this.ERROR, browser) + formatError(error, '  '))
+  }
+
+  this.onBrowserLog = (browser, log, type) => {
+    if (!browserConsoleLogOptions || !browserConsoleLogOptions.terminal) return
+    type = type.toUpperCase()
+    if (browserConsoleLogOptions.level) {
+      const logPriority = constants.LOG_PRIORITIES.indexOf(browserConsoleLogOptions.level.toUpperCase())
+      if (constants.LOG_PRIORITIES.indexOf(type) > logPriority) return
+    }
+    if (!helper.isString(log)) {
+      // TODO(vojta): change util to new syntax (config object)
+      log = util.inspect(log, false, undefined, this.USE_COLORS)
+    }
+    if (this._browsers && this._browsers.length === 1) {
+      this.writeCommonMsg(util.format(this.LOG_SINGLE_BROWSER, type, log))
+    } else {
+      this.writeCommonMsg(util.format(this.LOG_MULTI_BROWSER, browser, type, log))
+    }
+  }
+
+
   /*********************/
   /* Custom functions */
   this.specSuccess = function(browser, result) {
@@ -116,15 +141,15 @@ var TestReporter = function(baseReporterDecorator, config, logger, helper, forma
   }
 
   this.specFailure = function(browser, result) {
-    this.write('specFailure\n');
+    this.write('test-specFailure\n');
     // console.log(browser);
     console.log(result);
     this.fails.push(result.suite.join('-') + ': ' + result.description + '('+(result.endTime - result.startTime)+')');
   };
 
   this.specSkipped = function(browser, result) {
-    this.write('specSkipped\n');
-    // console.log(result);
+    this.write('test-specSkipped\n');
+    console.log(result);
   }
 };
 

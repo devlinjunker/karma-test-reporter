@@ -1,9 +1,9 @@
 
 TestReporter = require('./reporters/test.js');
-PerformanceReporter = require('./reporters/perfomrance.js')
+PerformanceReporter = require('./reporters/performance.js')
 
 module.exports = {
-  'reporter:test': ['type', TestReporter]
+  'reporter:test': ['type', TestReporter],
   'reporter:performance': ['type', PerformanceReporter]
 };
 
