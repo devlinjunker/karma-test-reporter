@@ -192,7 +192,7 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
 
   this.printOverview = function (runCompleteResults) {
     // Count of Long Tests
-    this.write(this.longTests.length + ' SLOW TEST' + (this.longTests.length > 1 ? 'S' : ''));
+    this.write(this.longTests.length + ' SLOW TEST' + (this.longTests.length > 1 ? 'S' : '') + '\n');
 
     // Print 10 Long Test names - first ten in this.longTests
     this.longTests.forEach((spec, index) => {
@@ -200,6 +200,8 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
           this.write('('+(spec.endTime - spec.startTime)+') - ' + spec.suite.join('-') + ': ' + spec.description +'\n');
       }
     })
+
+    this.write('\n');
 
     // TODO:
 
