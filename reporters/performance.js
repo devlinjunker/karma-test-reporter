@@ -39,6 +39,8 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
     this.times['browser_start'] = (new Date()).getTime();
     this.times['browser_last_result_start'] = browser.lastResult.startTime;
     this.times['build_time'] = this.times['browser_start'] - this.times['build_start'];
+
+    this.printBuildFinished();
   }
 
   /**
@@ -55,10 +57,6 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
       this.specFailure(browser, result);
     }
 
-    // TODO: Imitate Progress Reporter
-    // this.write(result.description + '\n');
-
-
     // I feel like this is the actual test length
     if (result.time > 200) {
       result.sortTime = result.time;
@@ -72,6 +70,11 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
       this.longTests.push(result);
     }
 
+    if (!this.times['spec_times']) {
+      this.times['spec_times'] = [];
+    }
+    this.times['spec_times'].push(result.sortTime);
+
     this.printProgress(browser, result);
   }
 
@@ -82,15 +85,22 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
    */
   this.onRunComplete = function(browsersCollection, results) {
     this.times['run_end'] = (new Date()).getTime();
-
     this.times['total_time'] = this.times['run_end']-this.times['build_start'];
 
+    // Sort Tests by time
     this.longTests = this.longTests.sort((a, b) => { return b.sortTime - a.sortTime });
 
+    // Get Total Number of Tests and Average Test Time
+    const totalTests = results.success + results.failed + results.skipped;
+    this.times['average_test_time'] = (this.times['total_time'] - this.times['build_time']) / totalTests;
+    results['total'] = totalTests;
+
+    // Print Results to user
     this.printOverview(results);
 
-    this.printFailures();
-    this.printPerformance();
+    // Save Full Data to files
+    this.saveFailures();
+    this.savePerformance();
   }
 
   /**
@@ -141,14 +151,20 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   /*********************/
   /* Print functions */
 
+  this.printBuildFinished = function () {
+    // TODO: print build time
+    this.write('BUILD TOOK: ' + this.times['build_time']);
+  }
+
   this.printProgress = function(browser, specResult) {
     const browserResult = browser.lastResult;
     const totalExecuted = browserResult.success + browserResult.failed
-    let msg = `${browser.name}: Executed ${totalExecuted} of ${browserResult.total}\n`
+    let msg = `${browser.name}: Executed ${totalExecuted} of ${browserResult.total}`
 
-    if (browserResult.failed) {
-      msg += `${browserResult.failed} FAILED`
-    }
+    const totalTime = (new Date()).getTime() - this.times['browser_start'];
+    const testTime = specResult.endTime - specResult.startTime;
+
+    msg += ` (${testTime} / ${totalTime})`
 
     if (browserResult.skipped) {
       msg += ` (skipped ${browserResult.skipped})`
@@ -162,52 +178,67 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
       msg += this.FINISHED_SUCCESS
     }
 
-    const totalTime = (new Date()).getTime() - this.times['browser_start'];
-    const testTime = specResult.endTime - specResult.startTime;
+    msg += '\n';
 
-    msg += ` (${testTime} / ${totalTime})\n`
+    if (browserResult.failed) {
+      msg += `${browserResult.failed} FAILED\n`;
+    } else {
+      msg += `\n`;
+    }
 
+    this.eraseLastLine();
     this.write(msg);
   }
 
-  this.printFailures = function() {
+  this.printOverview = function (runCompleteResults) {
+    // Count of Long Tests
+    this.write(this.longTests.length + ' SLOW TEST' + (this.longTests.length > 1 ? 'S' : ''));
+
+    // Print 10 Long Test names - first ten in this.longTests
+    this.longTests.forEach((spec, index) => {
+      if (index < 10) {
+          this.write('('+(spec.endTime - spec.startTime)+') - ' + spec.suite.join('-') + ': ' + spec.description +'\n');
+      }
+    })
+
+    // TODO:
+
+    // Build time
+    // Average Test Time
+    // Longest test time
+    // 90th percentile?
+    this.write(JSON.stringify(this.times, null, 2) + '\n');
+
+    // Total Results
+    // TOTAL: ${runCompleteResults.success} SUCCESS
+    // + ${runCompleteResults.failed} FAILED
+    // + ${runCompleteResults.skipped} SKIPPED
+    // + / ${runCompleteResults.total} TOTAL (calculated in onRunComplete)
+    console.log(runCompleteResults);
+
+
+    // Print All Failed Test Names (and Files?)
+    this.fails.forEach((spec, index) => {
+      this.write(spec.suite.join('-') + ': ' + spec.description +'\n');
+    });
+  }
+
+  /*********************/
+  /* Save functions */
+
+  this.saveFailures = function() {
     // To a File? that can be viewed with less
     // Print test names
     // Print the file name too? grep result.suite[0]
   }
 
-  this.printPerformance = function() {
+  this.savePerformance = function() {
 
     // In a separate file (to be viewed with less)
     // Identify Build Time
     // Identify Average Test time
     // Show Long Tests (sorted by time from large to small)
     // Identify if it is setup vs test time that is taking long
-  }
-
-  this.printOverview = function (runCompleteResults) {
-    const totalTests = runCompleteResults.success + runCompleteResults.failed + runCompleteResults.skipped;
-    this.times['average_test_time'] = (this.times['total_time'] - this.times['build_time']) / totalTests;
-
-
-    // Print at end:
-    //
-    // Status
-    // Build time
-    // Average Test Time
-    // Longest test time
-    // Number of Long Tests
-    // Number of Failed out of Total
-
-    // Total Results
-    console.log(runCompleteResults);
-
-    // print = result.suite.join('-') + ': ' + result.description + '('+(result.endTime - result.startTime)+')'
-    console.log(JSON.stringify(this.longTests, null, 2));
-
-    console.log(JSON.stringify(this.fails, null, 2));
-
-    this.write(JSON.stringify(this.times) + '\n\n');
   }
 };
 
