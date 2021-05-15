@@ -23,6 +23,8 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   this.longTestsCustom = [];
   this.fails = [];
 
+  this.firstTest = true;
+
   /**
    * Executes at the begining of the Tests running?
    * @param {*} browsers
@@ -49,6 +51,11 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
    * @param {*} result
    */
   this.onSpecComplete = function(browser, result) {
+    if (this.firstTest) {
+      this.write('\n');
+      this.firstTest = false;
+    }
+
     if (result.skipped) {
       this.specSkipped(browser, result);
     } else if (result.success) {
@@ -65,7 +72,7 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
 
     const totalTime = result.endTime - result.startTime;
     // and this includes setup time (before/after each)
-    if (totalTime > 500) {
+    if (totalTime > 500 && this.longTests.indexOf(result) == -1) {
       result.sortTime = totalTime;
       this.longTests.push(result);
     }
@@ -73,7 +80,7 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
     if (!this.times['spec_times']) {
       this.times['spec_times'] = [];
     }
-    this.times['spec_times'].push(result.sortTime);
+    this.times['spec_times'].push(result.sortTime ? result.sortTime : totalTime);
 
     this.printProgress(browser, result);
   }
@@ -152,8 +159,7 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   /* Print functions */
 
   this.printBuildFinished = function () {
-    // TODO: print build time
-    this.write('BUILD TOOK: ' + this.times['build_time']);
+    this.write('BUILD TOOK: ' + this.times['build_time'] + '\n');
   }
 
   this.printProgress = function(browser, specResult) {
@@ -191,15 +197,19 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   }
 
   this.printOverview = function (runCompleteResults) {
-    // Count of Long Tests
-    this.write(this.longTests.length + ' SLOW TEST' + (this.longTests.length > 1 ? 'S' : '') + '\n');
 
-    // Print 10 Long Test names - first ten in this.longTests
-    this.longTests.forEach((spec, index) => {
-      if (index < 10) {
-          this.write('('+(spec.endTime - spec.startTime)+') - ' + spec.suite.join('-') + ': ' + spec.description +'\n');
-      }
-    })
+    if(this.longTests.length > 0) { 
+      // Count of Long Tests
+      this.write(this.longTests.length + ' SLOW TEST' + (this.longTests.length > 1 ? 'S' : '') + '\n');
+
+      // Print 10 Long Test names - first ten in this.longTests
+      this.longTests.forEach((spec, index) => {
+        if (index < 10) {
+            this.write('('+(spec.endTime - spec.startTime)+') - ' + spec.suite.join('-') + ': ' + spec.description +'\n');
+        }
+      })
+    }
+    
 
     this.write('\n');
 
@@ -212,17 +222,35 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
     this.write(JSON.stringify(this.times, null, 2) + '\n');
 
     // Total Results
-    // TOTAL: ${runCompleteResults.success} SUCCESS
-    // + ${runCompleteResults.failed} FAILED
-    // + ${runCompleteResults.skipped} SKIPPED
-    // + / ${runCompleteResults.total} TOTAL (calculated in onRunComplete)
-    console.log(runCompleteResults);
+    let output = `TOTAL: ${runCompleteResults.success} SUCCESS`
+    if (runCompleteResults.failed > 0) {
+      output += `  ${runCompleteResults.failed} FAILED`
+    }
+    if (runCompleteResults.skipped > 0) {
+      output += `  ${runCompleteResults.skipped} SKIPPED`
+    }
+    output += ` / ${runCompleteResults.total} TOTAL` // (calculated in onRunComplete)
+    
+    this.write(output + '\n');
 
 
-    // Print All Failed Test Names (and Files?)
-    this.fails.forEach((spec, index) => {
-      this.write(spec.suite.join('-') + ': ' + spec.description +'\n');
-    });
+    if(this.fails.length > 0) {
+      this.write(this.fails.length + ' FAILING TEST' + (this.fails.length > 1 ? 'S' : '') + '\n');
+
+      // Print All Failed Test Names and errors or log messages
+      this.fails.forEach((spec, index) => {
+        this.write(spec.suite.join('-') + ': ' + spec.description +'\n');
+
+        // TODO: (and print Files?)
+
+        if (spec.assertionErrors.length > 0) {
+          this.write('   ' + spec.assertionErrors + '\n');
+        } else {
+          this.write('   ' + spec.log + '\n');
+        }
+      });
+    }
+    
   }
 
   /*********************/
