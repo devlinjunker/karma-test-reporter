@@ -25,6 +25,9 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
 
   this.firstTest = true;
 
+  this.LONG_TEST_BENCHMARK = 200;
+  this.LONG_SETUP_TEST_BENCHMARK = 500
+
   /**
    * Executes at the begining of the Tests running?
    * @param {*} browsers
@@ -65,14 +68,15 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
     }
 
     // I feel like this is the actual test length
-    if (result.time > 200) {
+    if (result.time > this.LONG_TEST_BENCHMARK ) {
       result.sortTime = result.time;
       this.longTests.push(result);
     }
 
-    const totalTime = result.endTime - result.startTime;
     // and this includes setup time (before/after each)
-    if (totalTime > 500 && this.longTests.indexOf(result) == -1) {
+    const totalTime = result.endTime - result.startTime;
+    // only add if it hasn't been added yet
+    if (totalTime > this.LONG_SETUP_TEST_BENCHMARK  && this.longTests.indexOf(result) == -1) {
       result.sortTime = totalTime;
       this.longTests.push(result);
     }
@@ -141,7 +145,22 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   }
 
   this.specFailure = function(browser, result) {
+    // Save to array for output/saving to file later
     this.fails.push(result);
+
+    // Output error in console with test name
+    this.write(spec.suite.join('-') + ': ' + spec.description +'\n');
+
+    // TODO: (and print Files?)
+
+    if (spec.assertionErrors.length > 0) {
+      this.write('   ' + JSON.stringify(spec.assertionErrors) + '\n');
+    }
+    if (spec.log) {
+      this.write('   ' + spec.log + '\n');
+    }
+
+    this.write('\n');
   };
 
   this.specSkipped = function(browser, result) {
@@ -159,7 +178,7 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   /* Print functions */
 
   this.printBuildFinished = function () {
-    this.write('BUILD TOOK: ' + this.times['build_time'] + '\n');
+    this.write('\nBUILD TOOK: ' + helper.formatTimeInterval(this.times['build_time']) + '\n\n');
   }
 
   this.printProgress = function(browser, specResult) {
@@ -193,14 +212,19 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
     }
 
     this.eraseLastLine();
+    this.eraseLastLine();
     this.write(msg);
   }
 
   this.printOverview = function (runCompleteResults) {
 
-    if(this.longTests.length > 0) { 
+    this.write('\n');
+
+    if(this.longTests.length > 0) {
       // Count of Long Tests
-      this.write(this.longTests.length + ' SLOW TEST' + (this.longTests.length > 1 ? 'S' : '') + '\n');
+      let msg = this.longTests.length + ' SLOW TEST' + (this.longTests.length > 1 ? 'S' : '');
+      msg += ' ( > '+this.LONG_TEST_BENCHMARK +'ms/'+this.LONG_SETUP_TEST_BENCHMARK+'ms with setup)\n\n';
+      this.write(msg);
 
       // Print 10 Long Test names - first ten in this.longTests
       this.longTests.forEach((spec, index) => {
@@ -208,18 +232,25 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
             this.write('('+(spec.endTime - spec.startTime)+') - ' + spec.suite.join('-') + ': ' + spec.description +'\n');
         }
       })
+
+      if (this.longTests.length > 10) {
+        this.write('... + ' +(this.longTests.length - 10) + ' more\n')
+      }
     }
-    
+
 
     this.write('\n');
 
-    // TODO:
+    this.write('BUILD TIME: ' + helper.formatTimeInterval(this.times['build_time']) + '\n');
+    this.write('AVG TEST TIME: ' + helper.formatTimeInterval(this.times['average_test_time']) + '\n');
+    this.write('LONGEST TEST TIME: ' + helper.formatTimeInterval(this.longTests[0].sortTime) + '\n');
 
-    // Build time
-    // Average Test Time
-    // Longest test time
+    const ninetyPercent = this.longTests[Math.round(this.longTests.length * 0.1)];
+
     // 90th percentile?
-    this.write(JSON.stringify(this.times, null, 2) + '\n');
+    this.write('90TH PERCENTILE: ' + helper.formatTimeInterval(ninetyPercent.sortTime) + '\n');
+
+    this.write('\n');
 
     // Total Results
     let output = `TOTAL: ${runCompleteResults.success} SUCCESS`
@@ -230,12 +261,12 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
       output += `  ${runCompleteResults.skipped} SKIPPED`
     }
     output += ` / ${runCompleteResults.total} TOTAL` // (calculated in onRunComplete)
-    
+
     this.write(output + '\n');
 
 
     if(this.fails.length > 0) {
-      this.write(this.fails.length + ' FAILING TEST' + (this.fails.length > 1 ? 'S' : '') + '\n');
+      this.write(this.fails.length + ' FAILING TEST' + (this.fails.length > 1 ? 'S' : '') + '\n\n');
 
       // Print All Failed Test Names and errors or log messages
       this.fails.forEach((spec, index) => {
@@ -244,13 +275,16 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
         // TODO: (and print Files?)
 
         if (spec.assertionErrors.length > 0) {
-          this.write('   ' + spec.assertionErrors + '\n');
-        } else {
+          this.write('   ' + JSON.stringify(spec.assertionErrors) + '\n');
+        }
+        if (spec.log) {
           this.write('   ' + spec.log + '\n');
         }
       });
+
+      this.write('\n');
     }
-    
+
   }
 
   /*********************/
