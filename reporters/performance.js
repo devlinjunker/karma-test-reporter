@@ -102,6 +102,7 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
 
     // Sort Tests by time
     this.longTests = this.longTests.sort((a, b) => { return b.sortTime - a.sortTime });
+    this.times['spec_times'] = this.times['spec_times'].sort((a, b) => { return b - a });
 
     // Get Total Number of Tests and Average Test Time
     const totalTests = results.success + results.failed + results.skipped;
@@ -114,6 +115,8 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
     // Save Full Data to files
     this.saveFailures();
     this.savePerformance();
+
+    this.write('\n\n');
   }
 
   /**
@@ -124,10 +127,10 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
    * TODO: Can we capture errors/logs? and erase our progress line before they print?
 
    */
-  this.onBrowserError = (browser, error) => {
-    // TODO:
-    // console.log(error);
-  }
+  // this.onBrowserError = (browser, error) => {
+  //   // TODO:
+  //   // console.log(error);
+  // }
 
   /**
    * Triggered when browser logs message
@@ -135,9 +138,9 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
    * @param  {*} log     message being logged
    * @param  {*} type    'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'LOG'
    */
-  this.onBrowserLog = (browser, log, type) => {
-    // TODO: consider printing the last spec name in this and error method
-  }
+  // this.onBrowserLog = (browser, log, type) => {
+  //   // TODO: consider printing the last spec name in this and error method
+  // }
 
   /*********************/
   /* Custom functions */
@@ -252,13 +255,15 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
 
     this.write('BUILD TIME: ' + helper.formatTimeInterval(this.times['build_time']) + '\n');
     this.write('AVG TEST TIME: ' + helper.formatTimeInterval(this.times['average_test_time']) + '\n');
-    this.write('LONGEST TEST TIME: ' + helper.formatTimeInterval(this.longTests[0].sortTime) + '\n');
+
+    const longest = this.longTests.length > 0 ? this.longTests[0].sortTime : this.times['spec_times'][0];
+    this.write('LONGEST TEST TIME: ' + helper.formatTimeInterval(longest) + '\n');
     this.write('ALL TEST LENGTH: ' + helper.formatTimeInterval(this.times['total_time']) + '\n');
 
-    const ninetyPercent = this.longTests[Math.round(this.longTests.length * 0.1)];
+    const ninetyPercent = this.times['spec_times'][Math.round(this.times['spec_times'].length * 0.1)];
 
     // 90th percentile?
-    this.write('90TH PERCENTILE: ' + helper.formatTimeInterval(ninetyPercent.sortTime) + '\n');
+    this.write('90TH PERCENTILE: ' + helper.formatTimeInterval(ninetyPercent) + '\n');
 
     this.write('\n');
   }
@@ -303,48 +308,54 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
   /* Save functions */
 
   this.saveFailures = function() {
-    let data = '';
+    if(this.fails.length > 0) {
+      let data = '';
 
-    this.fails.forEach((result, index) => {
-      data += result.suite.join('-') + ': ' + result.description +'\n';
+      this.fails.forEach((result, index) => {
+        data += result.suite.join('-') + ': ' + result.description +'\n';
 
-      // TODO: (and print Files?)
+        // TODO: (and print Files?)
 
-      if (result.assertionErrors.length > 0) {
-        data += '   ' + JSON.stringify(result.assertionErrors) + '\n';
-      }
-      if (result.log) {
-        data += '   ' + result.log + '\n';
-      }
-    });
+        if (result.assertionErrors.length > 0) {
+          data += '   ' + JSON.stringify(result.assertionErrors) + '\n';
+        }
+        if (result.log) {
+          data += '   ' + result.log + '\n';
+        }
+      });
 
-    this.writeFile('fails.data', data);
-    // To a File? that can be viewed with less
-    // Print test names
-    // Print the file name too? grep result.suite[0]
+      this.writeFile('fails.data', data);
+
+      this.write('Review the Failures with `less test/fails.data`\n');
+      // To a File? that can be viewed with less
+      // Print test names
+      // Print the file name too? grep result.suite[0]
+    }
   }
 
   this.savePerformance = function() {
     const timeOutput = Object.assign({}, this.times);
     delete timeOutput['spec_times'];
 
-    let data = JSON.stringify(timeOutput, 2);
+    let data = JSON.stringify(timeOutput, null, 2);
 
     this.writeFile('perf.data', data);
 
-    data = '';
+    this.write('\n View Full Performance Data with `less test/perf.data`\n');
 
-    this.longTests.forEach((result, index) => {
-      data += (result.endTime - result.startTime)+': ' + result.suite.join('-') + ': ' + result.description + (result.sortTime === result.time ? ' *' : '') + '\n';
-    });
+    if (this.longTests.length > 0) {
+      data = '';
 
-    this.writeFile('long.data', data);
+      this.longTests.forEach((result, index) => {
+        data += (result.endTime - result.startTime)+': ' + result.suite.join('-') + ': ' + result.description;
+        // Add * if it is the test itself that is taking a long time (no star = setup + tests )
+        data += (result.sortTime === result.time ? ' *' : '') + '\n';
+      });
 
-    // In a separate file (to be viewed with less)
-    // Identify Build Time
-    // Identify Average Test time
-    // Show Long Tests (sorted by time from large to small)
-    // Identify if it is setup vs test time that is taking long
+      this.writeFile('long.data', data);
+
+      this.write(' View ALL Long Tests with `less test/long.data`');
+    }
   }
 
   this.writeFile = function(filename, data) {
@@ -353,7 +364,7 @@ var PerformanceReporter = function(baseReporterDecorator, config, logger, helper
       fs.mkdirSync(dir, 0744);
     }
 
-    fs.writeFile(dir + '/' + filename, data);
+    fs.writeFileSync(dir + '/' + filename, data);
   }
 };
 
